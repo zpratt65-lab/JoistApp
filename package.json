@@ -2,7 +2,7 @@
   "name": "joistapp",
   "version": "1.0.0",
   "main": "index.js",
-  "homepage": "https://zpratt65-lab.github.io/JoistTool",
+  "homepage": "https://zpratt65-lab.github.io/JoistApp",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
