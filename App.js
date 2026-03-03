@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Button, Text } from 'react-native';
+import { StyleSheet, View, TextInput, Button, Text, ActivityIndicator } from 'react-native';
 
 export default function App() {
+  const [loading, setLoading] = useState(false);
   const [series, setSeries] = useState('K');
   const [methodology, setMethodology] = useState('ASD');
   const [span, setSpan] = useState('');
@@ -11,9 +12,10 @@ export default function App() {
   const [result, setResult] = useState(null);
 
   const HOST = process.env.EXPO_PUBLIC_API_HOST || 'https://joisttool.onrender.com';
-  const API_KEY = process.env.EXPO_PUBLIC_API_KEY || 'dev-key-change-in-production'; 
+  const API_KEY = process.env.EXPO_PUBLIC_API_KEY || 'dev-key-change-in-production';
 
   const calculate = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${HOST}/calculate-joist`, {
         method: 'POST',
@@ -34,60 +36,69 @@ export default function App() {
       setResult(data);
     } catch (e) {
       setResult({ error: 'Error connecting to Delphi Backend' });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>New Millennium Joist Tool</Text>
-      <TextInput 
-        placeholder="Joist Series (e.g. K)" 
+      <TextInput
+        placeholder="Joist Series (e.g. K)"
         onChangeText={setSeries}
         value={series}
         style={styles.input}
       />
-      <TextInput 
-        placeholder="Design Methodology (ASD or LRFD)" 
+      <TextInput
+        placeholder="Design Methodology (ASD or LRFD)"
         onChangeText={setMethodology}
         value={methodology}
         style={styles.input}
       />
-      <TextInput 
-        placeholder="Span (ft)" 
+      <TextInput
+        placeholder="Span (ft)"
         keyboardType="numeric"
         onChangeText={setSpan}
         value={span}
         style={styles.input}
       />
-      <TextInput 
-        placeholder="Dead Load (psf)" 
+      <TextInput
+        placeholder="Dead Load (psf)"
         keyboardType="numeric"
         onChangeText={setDeadLoad}
         value={deadLoad}
         style={styles.input}
       />
-      <TextInput 
-        placeholder="Live Load (psf)" 
+      <TextInput
+        placeholder="Live Load (psf)"
         keyboardType="numeric"
         onChangeText={setLiveLoad}
         value={liveLoad}
         style={styles.input}
       />
-      <TextInput 
-        placeholder="Joist Spacing (ft)" 
+      <TextInput
+        placeholder="Joist Spacing (ft)"
         keyboardType="numeric"
         onChangeText={setSpacing}
         value={spacing}
         style={styles.input}
       />
-      <Button title="Calculate Joist" onPress={calculate} color="#005a9c" />
-      {result && !result.error && (
+      <Button title="Calculate Joist" onPress={calculate} color="#005a9c" disabled={loading} />      {result && !result.error && (
         <View style={styles.resultContainer}>
           <Text style={styles.result}>Designation: {result.joist_designation}</Text>
           <Text style={styles.result}>Self‑weight: {result.joist_self_weight}</Text>
           <Text style={styles.result}>Bridging Rows: {result.bridging_rows_required}</Text>
           <Text style={styles.result}>Min Bearing Seat: {result.min_bearing_seat_depth}</Text>
           <Text style={styles.result}>Total Safe Load: {result.total_safe_load}</Text>
+        </View>
+      )}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loaderBox}>
+            <ActivityIndicator size="large" color="#005a9c" />
+            <Text style={styles.loadingText}>Calculating...</Text>
+          </View>
         </View>
       )}
       {result && result.error && <Text style={styles.error}>{result.error}</Text>}
@@ -101,5 +112,24 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 20, borderRadius: 5, backgroundColor: '#fff' },
   result: { marginTop: 30, fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
   resultContainer: { marginTop: 20 },
-  error: { marginTop: 20, fontSize: 16, color: 'red', textAlign: 'center' }
+  error: { marginTop: 20, fontSize: 16, color: 'red', textAlign: 'center' },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  loaderBox: {
+    backgroundColor: 'white',
+    padding: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#005a9c',
+    fontWeight: 'bold'
+  }
 });
